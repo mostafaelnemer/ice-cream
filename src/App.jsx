@@ -450,13 +450,11 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         address,
         notes: notes || '',
         bundle: offerSummary,
-        subtotal: `${subtotal} ج.م`,
-        shippingFee: onlyKeto(cartItems) ? 'مجاني' : '',
+        // الشيت: الإجمالي فقط — اتفاق 01/10/2026: شيلنا المنتجات/القيمة/الشحن/الوزن من الشيت
         price: `${totalPrice} ج.م`,
-        value: String(totalPrice),          // plain number string — Apps Script parses with Number()
+        value: String(totalPrice),          // للـ CAPI Purchase value — مش عمود في الشيت
         quantity: String(cartItems.reduce((s, i) => s + i.qty, 0)),
         flavors: orderSummary,
-        productWeight: PRODUCT_SIZES_LABEL,
         eventName,
         eventTime: String(eventTime),
         eventId,                            // same id sent to CAPI server-side + reused on retry

@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { name, phone, gov, address, notes, bundle, price, subtotal, shippingFee, flavors, quantity, productWeight } = req.body
+  const { name, phone, gov, address, notes, bundle, price, flavors, quantity } = req.body
 
   res.status(200).json({ result: 'success' })
 
@@ -20,12 +20,9 @@ export default async function handler(req, res) {
     address: address || '',
     notes: notes || '',
     bundle: bundle || '',
-    subtotal: subtotal || '',
-    shippingFee: shippingFee || '',
     price: price || '',
     flavors: flavors || '-',
     quantity: quantity || '1',
-    productWeight: productWeight || 'آيس كريم · كيتو بار',
   })
   fetch(`${SHEET_URL}?${params.toString()}`).catch(() => {})
 }
