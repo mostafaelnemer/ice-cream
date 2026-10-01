@@ -10,16 +10,16 @@
 }
 
 :root {
-  --cola-red: #E63946;
-  --cola-dark: #1A1A2E;
-  --cola-mid: #16213E;
-  --cola-purple: #4A1E7E;
-  --cola-purple-dark: #351158;
-  --cola-purple-light: #EC4899;
-  --cola-green: #22C55E;
-  --cola-gold: #F4A261;
-  --cola-cream: #FFF8F0;
-  --cola-gray: #F3F4F6;
+  --brand-red: #E63946;
+  --brand-dark: #1A1A2E;
+  --brand-mid: #16213E;
+  --brand-purple: #4A1E7E;
+  --brand-purple-dark: #351158;
+  --brand-purple-light: #EC4899;
+  --brand-green: #22C55E;
+  --brand-gold: #F4A261;
+  --brand-cream: #FFF8F0;
+  --brand-gray: #F3F4F6;
   --text-main: #111827;
   --text-soft: #6B7280;
   --radius: 16px;
@@ -63,7 +63,7 @@ body {
 }
 
 .promo-bar {
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   color: #fff;
   text-align: center;
   padding: 9px 16px;
@@ -112,7 +112,7 @@ body {
 }
 
 .topbar-nav a:hover {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .topbar-actions {
@@ -183,7 +183,7 @@ body {
 }
 
 .hero-text h1 span {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .hero-sub {
@@ -244,8 +244,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--cola-purple);
-  border: 2px solid var(--cola-purple);
+  color: var(--brand-purple);
+  border: 2px solid var(--brand-purple);
   border-radius: 50px;
   padding: 12px 22px;
   font-size: 0.95rem;
@@ -255,7 +255,7 @@ body {
 }
 
 .secondary-btn:hover {
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
 }
 
@@ -340,7 +340,7 @@ body {
 /* ── bottle name badge ── */
 .bottle-label {
   margin-top: 10px;
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 800;
@@ -451,7 +451,7 @@ body {
 /* keep float-tag for top variant */
 .float-tag {
   position: absolute;
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -476,7 +476,7 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   color: #fff;
   padding: 20px 24px;
   text-align: center;
@@ -491,7 +491,7 @@ body {
 .proof-band strong {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--cola-gold);
+  color: var(--brand-gold);
 }
 
 .proof-band span {
@@ -505,7 +505,7 @@ body {
 }
 
 .dark-section {
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   color: #fff;
 }
 
@@ -537,7 +537,7 @@ body {
 .eyebrow-pill {
   display: inline-block;
   background: rgba(74, 30, 126, 0.1);
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   border: 1px solid rgba(74, 30, 126, 0.3);
   border-radius: 50px;
   padding: 5px 16px;
@@ -555,7 +555,7 @@ body {
 .eyebrow-small {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -576,7 +576,7 @@ body {
 }
 
 .benefit-card {
-  background: var(--cola-gray);
+  background: var(--brand-gray);
   border-radius: var(--radius);
   padding: 28px 20px;
   text-align: center;
@@ -643,7 +643,7 @@ body {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: var(--cola-gold);
+  background: var(--brand-gold);
   color: #1a1a1a;
   font-size: 0.78rem;
   font-weight: 800;
@@ -685,7 +685,7 @@ body {
 .showcase-price strong {
   font-size: 1.3rem;
   font-weight: 800;
-  color: var(--cola-gold);
+  color: var(--brand-gold);
 }
 
 .showcase-price s {
@@ -758,7 +758,7 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   font-size: 1.2rem;
   font-weight: 800;
@@ -790,7 +790,7 @@ body {
   align-items: center;
   gap: 40px;
   padding: 60px 20px;
-  background: var(--cola-cream);
+  background: var(--brand-cream);
   flex-wrap: wrap;
 }
 
@@ -862,7 +862,7 @@ body {
 }
 
 .faq-item.open {
-  border-color: var(--cola-purple);
+  border-color: var(--brand-purple);
 }
 
 .faq-q {
@@ -883,11 +883,11 @@ body {
 }
 
 .faq-item.open .faq-q {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .faq-arrow {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   font-size: 0.7rem;
   flex-shrink: 0;
 }
@@ -901,7 +901,7 @@ body {
 
 /* ─── FOOTER ───────────────────────────────────────────────────────────────── */
 .footer {
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   padding: 30px 20px 80px;
   display: flex;
   flex-direction: column;
@@ -943,8 +943,8 @@ body {
   left: 0;
   right: 0;
   z-index: 200;
-  background: var(--cola-dark);
-  border-bottom: 2px solid var(--cola-purple);
+  background: var(--brand-dark);
+  border-bottom: 2px solid var(--brand-purple);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -970,7 +970,7 @@ body {
 
 .sticky-cart-chip {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--accent, var(--cola-purple));
+  border: 1px solid var(--accent, var(--brand-purple));
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -980,7 +980,7 @@ body {
 }
 
 .sticky-cart-btn {
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -1011,7 +1011,7 @@ body {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -1070,7 +1070,7 @@ body {
   padding: 8px 18px;
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s, border-color 0.15s;
@@ -1079,7 +1079,7 @@ body {
 
 .funnel-back-btn:hover {
   background: #f3e8ff;
-  border-color: var(--cola-purple);
+  border-color: var(--brand-purple);
 }
 
 
@@ -1116,12 +1116,12 @@ body {
 }
 
 .stepper-circle.active {
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
 }
 
 .stepper-circle.done {
-  background: var(--cola-green);
+  background: var(--brand-green);
   color: #fff;
 }
 
@@ -1134,7 +1134,7 @@ body {
 }
 
 .stepper-label.active {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .stepper-line {
@@ -1147,7 +1147,7 @@ body {
 }
 
 .stepper-line.done {
-  background: var(--cola-green);
+  background: var(--brand-green);
 }
 
 /* ─── STEP SCREEN ──────────────────────────────────────────────────────────── */
@@ -1170,7 +1170,7 @@ body {
 }
 
 .step-hero-text h1 span {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .step-subtitle {
@@ -1196,7 +1196,7 @@ body {
   padding: 5px 12px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 /* ─── BUNDLE ROW ───────────────────────────────────────────────────────────── */
@@ -1231,7 +1231,7 @@ body {
 }
 
 .bundle-row.selected {
-  border-color: var(--accent, var(--cola-purple));
+  border-color: var(--accent, var(--brand-purple));
   background: rgba(107, 33, 168, 0.03);
   box-shadow: 0 0 0 4px rgba(107, 33, 168, 0.08);
 }
@@ -1242,7 +1242,7 @@ body {
   left: -10px;
   width: 28px;
   height: 28px;
-  background: var(--accent, var(--cola-purple));
+  background: var(--accent, var(--brand-purple));
   color: #fff;
   border-radius: 50%;
   display: flex;
@@ -1256,7 +1256,7 @@ body {
   position: absolute;
   top: -10px;
   right: 16px;
-  background: var(--accent, var(--cola-gold));
+  background: var(--accent, var(--brand-gold));
   color: #fff;
   font-size: 0.72rem;
   font-weight: 800;
@@ -1309,7 +1309,7 @@ body {
 }
 
 .dark-section .bundle-row-price strong {
-  color: var(--accent, var(--cola-purple));
+  color: var(--accent, var(--brand-purple));
 }
 
 .bundle-row-price {
@@ -1322,7 +1322,7 @@ body {
 .bundle-row-price strong {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--accent, var(--cola-purple));
+  color: var(--accent, var(--brand-purple));
 }
 
 .bundle-row-price s {
@@ -1518,7 +1518,7 @@ body {
 .next-btn {
   width: 100%;
   padding: 16px;
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -1541,7 +1541,7 @@ body {
 }
 
 .offer-index {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   font-weight: 800;
   font-size: 0.95rem;
   margin: 0 4px 8px;
@@ -1551,7 +1551,7 @@ body {
   display: flex;
   gap: 12px;
   align-items: center;
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   border-radius: var(--radius);
   padding: 12px;
   padding-left: 20px;
@@ -1612,7 +1612,7 @@ body {
 .confirm-price strong {
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--cola-gold);
+  color: var(--brand-gold);
 }
 
 .confirm-price s {
@@ -1678,7 +1678,7 @@ body {
 .form-section-title {
   font-weight: 700;
   font-size: 0.9rem;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   margin-bottom: 16px;
   padding-bottom: 10px;
   border-bottom: 1px solid #f3f4f6;
@@ -1717,7 +1717,7 @@ body {
 .field textarea:focus,
 .field .select-field:focus {
   outline: none;
-  border-color: var(--cola-purple);
+  border-color: var(--brand-purple);
   box-shadow: 0 0 0 3px rgba(74, 30, 126, 0.1);
   background: #fff;
 }
@@ -1846,7 +1846,7 @@ body {
 }
 
 .submit-error-contact a {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   font-weight: 800;
   text-decoration: none;
 }
@@ -1859,7 +1859,7 @@ body {
 
 /* ─── FIELD LABELS ─────────────────────────────────────────────────────────── */
 .req {
-  color: var(--cola-red);
+  color: var(--brand-red);
   margin-right: 2px;
 }
 
@@ -1962,7 +1962,7 @@ body {
 }
 
 .success-val.price {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   font-size: 1rem;
 }
 
@@ -2216,8 +2216,8 @@ body {
 }
 
 .fqp-btn:hover {
-  border-color: var(--cola-purple);
-  color: var(--cola-purple);
+  border-color: var(--brand-purple);
+  color: var(--brand-purple);
   background: rgba(74, 30, 126, 0.05);
 }
 
@@ -2346,7 +2346,7 @@ body {
 }
 
 .flavor-bar-cola {
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   transition: width 0.3s ease;
   border-radius: 50px 0 0 50px;
 }
@@ -2381,7 +2381,7 @@ body {
   font-weight: 700;
 }
 
-.fbl.cola { color: var(--cola-purple); }
+.fbl.cola { color: var(--brand-purple); }
 .fbl.lemon { color: #4d7c0f; }
 
 @media (max-width: 420px) {
@@ -2425,12 +2425,12 @@ body {
 }
 
 .month-flavor-btn:hover {
-  border-color: var(--cola-purple);
+  border-color: var(--brand-purple);
   background: rgba(74, 30, 126, 0.03);
 }
 
 .month-flavor-btn.selected {
-  border-color: var(--cola-purple);
+  border-color: var(--brand-purple);
   background: rgba(74, 30, 126, 0.06);
   transform: scale(1.02);
 }
@@ -2464,7 +2464,7 @@ body {
   border: none;
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s;
@@ -2501,7 +2501,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 9px 20px;
-  background: var(--cola-purple);
+  background: var(--brand-purple);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -2523,7 +2523,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   color: #fff;
   border-radius: var(--radius);
   padding: 14px 18px;
@@ -2537,7 +2537,7 @@ body {
 
 .cart-summary-total {
   font-size: 1.1rem;
-  color: var(--cola-gold);
+  color: var(--brand-gold);
 }
 
 /* ─── CART TOTAL BAR ───────────────────────────────────────────────────────── */
@@ -2564,7 +2564,7 @@ body {
 
 .cart-total-bar strong {
   font-size: 1.2rem;
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .cart-total-bar s {
@@ -2625,7 +2625,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: var(--cola-dark);
+  background: var(--brand-dark);
   color: #fff;
   border-radius: 14px;
   padding: 12px 16px;
@@ -2641,7 +2641,7 @@ body {
 
 .order-total-slim strong {
   font-size: 1.15rem;
-  color: var(--cola-gold);
+  color: var(--brand-gold);
   white-space: nowrap;
 }
 
@@ -2680,8 +2680,8 @@ body {
 }
 
 .fq-btn:hover {
-  border-color: var(--cola-purple);
-  color: var(--cola-purple);
+  border-color: var(--brand-purple);
+  color: var(--brand-purple);
   background: #f3e8ff;
 }
 
@@ -2726,8 +2726,8 @@ body {
 }
 
 .fq-btn:hover {
-  border-color: var(--cola-purple);
-  color: var(--cola-purple);
+  border-color: var(--brand-purple);
+  color: var(--brand-purple);
   background: #f3e8ff;
 }
 
@@ -2772,8 +2772,8 @@ body {
 }
 
 .fq-btn:hover {
-  border-color: var(--cola-purple);
-  color: var(--cola-purple);
+  border-color: var(--brand-purple);
+  color: var(--brand-purple);
   background: #f3e8ff;
 }
 
@@ -2836,7 +2836,7 @@ body {
 .order-expectation {
   background: #fff;
   border: 1.5px solid #e5e7eb;
-  border-right: 4px solid var(--cola-purple);
+  border-right: 4px solid var(--brand-purple);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
   margin-bottom: 16px;
@@ -3226,7 +3226,7 @@ body {
 }
 
 .hero-v3-text h1 span {
-  color: var(--cola-purple);
+  color: var(--brand-purple);
 }
 
 .hero-v3-text .hero-sub {
