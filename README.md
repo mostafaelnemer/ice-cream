@@ -74,7 +74,7 @@ google-apps-script.js
 إلى Google Apps Script المرتبط بالشيت، ثم عدل القيم التالية:
 
 ```js
-var FB_PIXEL_ID = '2267627306980280';
+var FB_PIXEL_ID = '1444230060383429';
 var FB_ACCESS_TOKEN = 'PASTE_META_CAPI_ACCESS_TOKEN_HERE';
 var FB_TEST_EVENT_CODE = '';
 ```

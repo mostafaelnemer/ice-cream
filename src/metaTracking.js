@@ -1,4 +1,4 @@
-export const FB_PIXEL_ID = '2267627306980280'
+export const FB_PIXEL_ID = '1444230060383429'
 
 // ─── SESSION KEYS ─────────────────────────────────────────────────────────────
 // One key per order-level event (Purchase). Prevents re-fire across re-renders.
@@ -15,6 +15,36 @@ export function createMetaEventId(prefix = 'evt') {
     return `${prefix}_${crypto.randomUUID()}`
   }
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+}
+
+// ─── SESSION-SCOPED EVENT IDS (Browser ↔ CAPI dedup) ─────────────────────────
+/**
+ * One stable event_id per event name per tab session.
+ *
+ * The SAME id is passed to fbq() (via trackBrowserEventOnce) AND forwarded to
+ * the server in the order payload (viewContentEventId / addToCartEventId), so
+ * the Apps Script can attach it to the matching CAPI event and Meta can
+ * deduplicate the browser/server pair. Never regenerate these mid-session —
+ * regenerating would break deduplication for ViewContent / AddToCart.
+ */
+const getSessionEventId = (prefix, storageKey) => {
+  try {
+    const existing = sessionStorage.getItem(storageKey)
+    if (existing) return existing
+  } catch { /* storage unavailable — generate below */ }
+  const id = createMetaEventId(prefix)
+  try {
+    sessionStorage.setItem(storageKey, id)
+  } catch { /* ignore */ }
+  return id
+}
+
+export function getViewContentEventId() {
+  return getSessionEventId('viewcontent', 'hc_meta_eid_viewcontent')
+}
+
+export function getAddToCartEventId() {
+  return getSessionEventId('addtocart', 'hc_meta_eid_addtocart')
 }
 
 // ─── ORDER-LEVEL DEDUP (Purchase) ─────────────────────────────────────────────

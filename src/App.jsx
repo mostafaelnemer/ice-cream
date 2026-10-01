@@ -1,5 +1,5 @@
 ﻿import { useState, useRef, useEffect } from 'react'
-import { buildPurchaseMeta, createMetaEventId, trackBrowserEventOnce } from './metaTracking'
+import { buildPurchaseMeta, getAddToCartEventId, getViewContentEventId, trackBrowserEventOnce } from './metaTracking'
 import CountdownTimer from './components/CountdownTimer'
 import { CheckCircle2, Phone, Mail } from 'lucide-react'
 import logo from './assets/logo.png'
@@ -460,6 +460,10 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         eventName,
         eventTime: String(eventTime),
         eventId,                            // same id sent to CAPI server-side + reused on retry
+        // Session-stable ids — Apps Script must attach the SAME ids to its ViewContent/AddToCart
+        // CAPI events so Meta deduplicates them against the browser Pixel fires.
+        viewContentEventId: getViewContentEventId(),
+        addToCartEventId: getAddToCartEventId(),
         eventSourceUrl: window.location.href,
         fbp: getCookie('_fbp'),
         fbc: getFbc(),
@@ -1101,6 +1105,18 @@ function App() {
     }
   }, [])
 
+  // ViewContent exactly once per session — the SAME event_id is sent to CAPI
+  // in the order payload (viewContentEventId) so Meta can deduplicate the pair.
+  useEffect(() => {
+    const viewContentEventId = getViewContentEventId()
+    console.log('[MetaPixel] ViewContent:', { event_id: viewContentEventId })
+    trackBrowserEventOnce(
+      'ViewContent',
+      { content_type: 'product', content_name: 'Healthy & Tasty — العروض' },
+      viewContentEventId,
+    )
+  }, [])
+
   if (flow === 'landing') {
     return (
       <Landing
@@ -1115,7 +1131,8 @@ function App() {
           if (!addToCartSentRef.current) {
             addToCartSentRef.current = true
             const addToCartValue = calcOrderTotal(items)
-            const addToCartEventId = createMetaEventId('addtocart')
+            // Session-stable id — the SAME id is sent to CAPI in the order payload (addToCartEventId)
+            const addToCartEventId = getAddToCartEventId()
             console.log('[MetaPixel] AddToCart:', {
               value: addToCartValue,
               currency: 'EGP',
