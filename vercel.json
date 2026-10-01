@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/:path((?!api/|assets/|robots\\.txt|sitemap\\.xml|og-cover\\.jpg|favicon\\.svg|icons\\.svg).*)", "destination": "/index.html" }
+  ]
+}
