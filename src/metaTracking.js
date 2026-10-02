@@ -1,5 +1,6 @@
 export const FB_PIXEL_ID = '1444230060383429'
 
+
 // ─── SESSION KEYS ─────────────────────────────────────────────────────────────
 // One key per order-level event (Purchase). Prevents re-fire across re-renders.
 const ORDER_PURCHASE_SENT_KEY = 'hc_order_purchase_sent'
