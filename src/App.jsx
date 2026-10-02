@@ -366,9 +366,9 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
   const buildOfferSummary = () =>
     cartItems.map((item) => `${item.bundle.name} ×${item.qty}`).join(' | ')
 
-  const handleSubmit = async () => {
-    // Guard 1: status-based lock (catches re-renders and rapid taps after completion)
-    if (status === 'sending' || status === 'done') return
+  const handleSubmit = () => {
+    // Guard 1: status-based lock (catches re-renders and taps after completion)
+    if (status === 'done') return
     // Guard 2: ref-based lock (catches rapid double-taps before state update propagates)
     if (purchaseSubmitLock.current) return
 
@@ -400,28 +400,35 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
       return
     }
 
-    // Set lock BEFORE any async work — prevents all re-entry paths
+    // ── Optimistic UI: success screen FIRST, sheet send in background ─────────
+    // العميل يشوف التأكيد فوراً من غير ما يستنى رد الشيت (الشبكة البطيئة كانت
+    // بتخسرنا conversions). الإرسال للشيت + CAPI بيحصل في الخلفية بنفس eventId.
+    // Set lock BEFORE any work — prevents all re-entry paths
     purchaseSubmitLock.current = true
-    setStatus('sending')
 
     // no-cors responses are opaque: only NETWORK failures (rejection) are detectable.
     const postOrder = (url) => fetch(url, { method: 'GET', mode: 'no-cors', keepalive: true })
 
-    // Shared failure path: no success screen, cart + draft stay intact.
-    const failSubmit = (err) => {
-      console.error('[Order] Submit failed:', err)
-      purchaseSubmitLock.current = false // allow manual retry (new eventId per attempt)
-      setStatus('failed')
-      try {
-        if (typeof window.fbq === 'function') window.fbq('trackCustom', 'OrderSubmitFailed')
-      } catch { /* ignore */ }
-      setTimeout(() => {
-        document.getElementById('submit-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 50)
+    // Background sender (fire-and-forget): one retry, then save for flushPendingOrder.
+    const sendInBackground = (url, eid) => {
+      postOrder(url).catch((err1) => {
+        console.error('[Order] Background send attempt 1 failed, retrying once:', err1)
+        setTimeout(() => {
+          postOrder(url).catch((err2) => {
+            console.error('[Order] Background send failed, saved for retry:', err2)
+            try {
+              localStorage.setItem('hc_failed_order', JSON.stringify({ url, eventId: eid, ts: Date.now() }))
+            } catch { /* ignore */ }
+          })
+        }, 1500)
+      })
     }
 
-    let orderUrl = ''
-    let eventId = ''
+    let orderUrl
+    let eventId
+    let eventName
+    let eventTime
+    let eventParams
     try {
       const orderSummary = buildOrderSummary()
       const offerSummary = buildOfferSummary()
@@ -430,11 +437,13 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
       // both the browser Pixel and the CAPI call. Never call buildPurchaseMeta()
       // twice for the same attempt.
       const purchaseMeta = buildPurchaseMeta({ value: totalPrice, contentName: offerSummary })
-      const { eventName, eventTime, eventParams } = purchaseMeta
+      eventName = purchaseMeta.eventName
+      eventTime = purchaseMeta.eventTime
+      eventParams = purchaseMeta.eventParams
       eventId = purchaseMeta.eventId
 
       // Debug log — verify value/currency/event_id before any network call
-      console.log('[Order] Purchase submit:', {
+      console.log('[Order] Purchase submit (optimistic):', {
         event_name: eventName,
         event_id: eventId,
         value: eventParams.value,
@@ -467,45 +476,39 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         fbc: getFbc(),
         userAgent: navigator.userAgent,
       })
-
-      // ── Sheet + CAPI (server-side) ──────────────────────────────────────────
-      // كل طلب مؤكد لازم يتبعت — حتى لو اتعمل طلب قبل كده في نفس الجلسة
-      // (العميل ممكن يطلب أكتر من مرة). منع التكرار لنفس الطلب مضمون بـ:
-      // 1) purchaseSubmitLock + status guards (ضد الدوس المزدوج)
-      // 2) eventId فريد لكل محاولة + capiAlreadySent() في السكريبت (ضد تكرار CAPI)
-      // 3) trackBrowserEventOnce (ضد تكرار البكسل — يُستدعى عند النجاح فقط)
       orderUrl = `${ORDER_API_URL}?${orderPayload.toString()}`
-      try {
-        await postOrder(orderUrl)
-      } catch (err1) {
-        console.error('[Order] Submit attempt 1 failed, retrying once:', err1)
-        await new Promise((r) => setTimeout(r, 1500))
-        await postOrder(orderUrl) // throws → failure path below
-      }
-
-      // ── SUCCESS ─────────────────────────────────────────────────────────────
-      try { localStorage.removeItem('hc_failed_order') } catch { /* ignore */ }
-
-      // ── Browser Pixel (fires ONLY on success — never twice for one order) ──
-      // trackBrowserEventOnce uses its own sessionStorage key per (eventName+eventId).
-      // The eventID option MUST match the event_id sent to CAPI above.
-      trackBrowserEventOnce(eventName, eventParams, eventId)
-
-      window.history.pushState({}, '', '/confirmation_order')
-      setStatus('done')
     } catch (err) {
-      // Rejection here = network failure on both attempts (or payload build error).
-      // Save payload (with its eventId) for background retry — do NOT show success.
-      if (orderUrl) {
-        try {
-          localStorage.setItem('hc_failed_order', JSON.stringify({ url: orderUrl, eventId, ts: Date.now() }))
-        } catch { /* ignore */ }
-      }
-      failSubmit(err)
+      // Payload build error (practically unreachable) — release lock so user can retry.
+      console.error('[Order] Submit build failed:', err)
+      purchaseSubmitLock.current = false
+      setStatus('failed')
+      try {
+        if (typeof window.fbq === 'function') window.fbq('trackCustom', 'OrderSubmitFailed')
+      } catch { /* ignore */ }
+      setTimeout(() => {
+        document.getElementById('submit-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 50)
+      return
     }
+
+    // ── SUCCESS (immediate — never twice for one order) ───────────────────────
+    // كل طلب مؤكد لازم يتسجل — حتى لو اتعمل طلب قبل كده في نفس الجلسة
+    // (العميل ممكن يطلب أكتر من مرة). منع التكرار لنفس الطلب مضمون بـ:
+    // 1) purchaseSubmitLock + status guards (ضد الدوس المزدوج)
+    // 2) eventId فريد لكل محاولة + capiAlreadySent() في السكريبت (ضد تكرار CAPI)
+    // 3) trackBrowserEventOnce (ضد تكرار البكسل — يُستدعى مرة واحدة هنا فقط)
+    // trackBrowserEventOnce uses its own sessionStorage key per (eventName+eventId).
+    // The eventID option MUST match the event_id sent to CAPI above.
+    trackBrowserEventOnce(eventName, eventParams, eventId)
+    try { localStorage.removeItem('hc_failed_order') } catch { /* ignore */ }
+
+    window.history.pushState({}, '', '/confirmation_order')
+    setStatus('done')
+
+    // ── Sheet + CAPI (server-side) goes out in the background ─────────────────
+    sendInBackground(orderUrl, eventId)
     // NOTE: purchaseSubmitLock stays true after success (blocks any re-fire for this
-    // component instance). It is released ONLY in failSubmit() to allow a manual retry,
-    // which builds a fresh eventId — so Pixel/CAPI can never double-fire one order.
+    // component instance). Pixel/CAPI can never double-fire one order.
   }
 
   if (status === 'done') {
@@ -685,8 +688,8 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
           </p>
         </div>
       )}
-      <button className="confirm-order-btn" onClick={handleSubmit} disabled={status === 'sending'}>
-        {status === 'sending' ? '⏳ جاري تسجيل الطلب…' : `تأكيد الطلب • ${totalPrice} ج.م`}
+      <button className="confirm-order-btn" onClick={handleSubmit}>
+        {`تأكيد الطلب • ${totalPrice} ج.م`}
       </button>
       <button className="back-btn" onClick={onBack}>رجوع</button>
     </div>
