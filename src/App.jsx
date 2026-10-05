@@ -7,6 +7,7 @@ import heroIcecreamImg from './assets/icecream-vanilla.webp'
 import heroKetobarImg from './assets/hero-ketobar-double-chocolate.webp'
 import offerIcecreamImg from './assets/ice_cream.webp'
 import offerKetoImg from './assets/keto.webp'
+import offerHalawaImg from './assets/halawa-spread.jpeg'
 import iceVanilla from './assets/icecream-vanilla.webp'
 import iceChocolate from './assets/icecream-chocolate.webp'
 import iceStrawberry from './assets/icecream-strawberry.webp'
@@ -24,12 +25,10 @@ import './App.css'
 // العروض النهائية:
 // - آيس كريم: 5 قطع بـ 299 جنيه (بدل 375)
 // - كيتو بار: 4 قطع بـ 250 جنيه (بدل 340)
+// - حلاوة طحينية سبريد: عبوة بـ 149 جنيه (بدل 190)
 // - مفيش شحن في الموقع — الكول سنتر هيتعامل
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
-
-/** ملخص المنتجات — TODO: تحديث الأحجام النهائية أول ما التفاصيل تتبعت */
-const PRODUCT_SIZES_LABEL = 'آيس كريم · كيتو بار'
 
 /** نكهات الآيس كريم — من صور المنتجات (8 نكهات) */
 const ICECREAM_FLAVORS = ['فانيليا', 'شوكولاتة', 'فراولة', 'مانجو', 'بلوبيري', 'فسدق', 'بندق', 'كنتالوب']
@@ -52,8 +51,7 @@ const calcItemsSubtotal = (items) =>
 /** total = مجموع المنتجات فقط */
 const calcOrderTotal = (items) => calcItemsSubtotal(items)
 
-// العرضان النهائيان فقط — بدون ميكس
-// الأسعار من صور العروض: الآيس كريم 299 بدل 375 / الكيتو بار 250 بدل 340
+// الأسعار من صور العروض المرسلة
 // ملحوظة: مفيش شحن في الموقع — الكول سنتر هيتعامل
 const bundles = [
   {
@@ -85,6 +83,20 @@ const bundles = [
     freeShipping: true,
     image: offerKetoImg,
     accent: '#10B981',
+  },
+  {
+    id: 'halawa',
+    name: 'عرض الحلاوة الطحينية سبريد',
+    badge: '🥄 عبوة بـ 149 ج',
+    description: 'حلاوة طحينية سبريد من Healthy & Tasty — عبوة بـ 149 جنيه بدل 190 جنيه.',
+    price: 149,
+    originalPrice: 190,
+    saving: 41,
+    units: 1,
+    unitsLabel: 'عبوة واحدة',
+    flavors: [],
+    image: offerHalawaImg,
+    accent: '#F5B800',
   },
 ]
 
@@ -195,7 +207,7 @@ const egyptGovs = ['القاهرة', 'الجيزة', 'الإسكندرية', 'ط
 const faqs = [
   { q: 'الآيس كريم فيه سكر؟', a: 'لا، آيس كريم Healthy & Tasty بدون سكر، ومناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.' },
   { q: 'الكيتو بار مناسب للكيتو؟', a: 'أيوه، الـ Keto Bar مصمم ليناسب نظام الكيتو، وعملي كسناك بين الوجبات تاخده معاك في الشغل أو الجامعة أو الجيم.' },
-  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375. عرض الكيتو بار: 4 قطع بـ 250 جنيه بدلاً من 340 والتوصيل مجاني.' },
+  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375. عرض الكيتو بار: 4 قطع بـ 250 جنيه بدلاً من 340 والتوصيل مجاني. عرض الحلاوة الطحينية سبريد: عبوة بـ 149 جنيه بدلاً من 190.' },
   { q: 'التوصيل بياخد قد إيه؟', a: 'فريق Healthy & Tasty بيتواصل سريعاً لتأكيد الطلب، والتوصيل يبدأ خلال ساعات بعد التأكيد.' },
   { q: 'الدفع إزاي؟', a: 'الدفع عند الاستلام.' },
   { q: 'أطلب إزاي؟', a: 'اختار العرض، أكمل بياناتك، وفريقنا هيتواصل معاك لتأكيد الطلب والتوصيل.' },
@@ -359,7 +371,10 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
   const buildOrderSummary = () =>
     cartItems.map((item, i) => {
-      const summary = `${item.bundle.name} ×${item.qty} (${formatFlavorSummary(item.bundle.flavors, itemFlavors[i])})`
+      const flavorDetails = item.bundle.flavors.length > 0
+        ? ` (${formatFlavorSummary(item.bundle.flavors, itemFlavors[i])})`
+        : ''
+      const summary = `${item.bundle.name} ×${item.qty}${flavorDetails}`
       return summary
     }).join(' | ')
 
@@ -388,6 +403,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
     // النكهات لازم تكمل عدد قطع كل عرض — اللي ميلمسش العدادات معفي (متوزعة مشكّل من الأول)
     const incompleteIdx = cartItems.findIndex((item, i) => {
+      if (item.bundle.flavors.length === 0) return false
       const need = bundleUnits(item.bundle.id) * item.qty
       const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
       return got < need
@@ -530,7 +546,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
           <div className="success-card">
             <div className="success-card-row">
               <span className="success-label">المنتج</span>
-              <span className="success-val">{PRODUCT_SIZES_LABEL}</span>
+              <span className="success-val">{cartItems.map(item => item.bundle.name).join(' · ')}</span>
             </div>
             <div className="success-card-divider" />
             {cartItems.map((item, i) => {
@@ -540,10 +556,10 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                     <span className="success-label">{item.bundle.name}</span>
                     <span className="success-val">×{item.qty} — {item.bundle.price * item.qty} ج.م</span>
                   </div>
-                  <div className="success-card-row">
+                  {item.bundle.flavors.length > 0 && <div className="success-card-row">
                     <span className="success-label">النكهات</span>
                     <span className="success-val">{formatFlavorSummary(item.bundle.flavors, itemFlavors[i])}</span>
-                  </div>
+                  </div>}
                   {i < cartItems.length - 1 && <div className="success-card-divider" />}
                 </div>
               )
@@ -594,7 +610,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
       {cartItems.map((item, i) => (
         <div key={i} className="order-offer-block" id={`offer-block-${i}`}>
           {cartItems.length > 1 && (
-            <h3 className="offer-index">العرض {i === 0 ? 'الأول' : 'الثاني'}</h3>
+            <h3 className="offer-index">العرض {i + 1}</h3>
           )}
           <div className="confirm-summary">
             <button className="remove-item-btn" onClick={() => removeItem(i)} title="إزالة من السلة">✕</button>
@@ -614,7 +630,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               )}
             </div>
           </div>
-          <FlavorPicker
+          {item.bundle.flavors.length > 0 && <FlavorPicker
             flavorNames={item.bundle.flavors}
             values={itemFlavors[i]}
             total={bundleUnits(item.bundle.id) * item.qty}
@@ -623,7 +639,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               setItemFlavors(prev => prev.map((x, idx) => idx === i ? v : x))
               if (flavorErrorIdx === i) setFlavorErrorIdx(null)
             }}
-          />
+          />}
           {flavorErrorIdx === i && (() => {
             const need = bundleUnits(item.bundle.id) * item.qty
             const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
@@ -865,7 +881,7 @@ function Landing({ onConfirm }) {
 
       <section className="section dark-section" id="offers">
         <div className="section-head light">
-          <p className="eyebrow-pill light">عرضان فقط 👇 اختار اللي يناسبك</p>
+          <p className="eyebrow-pill light">{bundles.length} عروض 👇 اختار اللي يناسبك</p>
           <h2>الباقة المناسبة ليك</h2>
           <p>الدفع عند الاستلام 💳 · 🍫 الكيتو بار توصيله مجاني</p>
           <DeliveryHighlight compact />
