@@ -20,6 +20,7 @@ import ketoAlmond from './assets/ketobar-almond.webp'
 import ketoCoconut from './assets/ketobar-coconut.webp'
 import ketoHazelnut from './assets/ketobar-hazelnut.webp'
 import ketoPeanut from './assets/ketobar-peanut-butter.webp'
+import { useOffers } from './useOffers'
 import './App.css'
 
 // العروض النهائية:
@@ -53,7 +54,27 @@ const calcOrderTotal = (items) => calcItemsSubtotal(items)
 
 // الأسعار من صور العروض المرسلة
 // ملحوظة: مفيش شحن في الموقع — الكول سنتر هيتعامل
-const bundles = [
+/** صور النكهات المحلية لكل نوع منتج */
+const ICECREAM_IMAGES = {
+  'فانيليا': iceVanilla,
+  'شوكولاتة': iceChocolate,
+  'فراولة': iceStrawberry,
+  'مانجو': iceMango,
+  'بلوبيري': iceBlueberry,
+  'فسدق': icePistachio,
+  'بندق': iceHazelnut,
+  'كنتالوب': iceCantaloupe,
+}
+
+const KETOBAR_IMAGES = {
+  'بندق': ketoHazelnut,
+  'زبدة فول سوداني': ketoPeanut,
+  'دبل شوكولاتة': heroKetobarImg,
+  'جوز هند': ketoCoconut,
+  'لوز': ketoAlmond,
+}
+
+const LOCAL_BUNDLES = [
   {
     id: 'icecream',
     name: 'عرض الآيس كريم',
@@ -65,6 +86,7 @@ const bundles = [
     units: 5,
     unitsLabel: '5 قطع',
     flavors: ICECREAM_FLAVORS,
+    flavorImages: ICECREAM_IMAGES,
     image: offerIcecreamImg,
     accent: '#EC4899',
   },
@@ -79,6 +101,7 @@ const bundles = [
     units: 4,
     unitsLabel: '4 قطع',
     flavors: KETO_BAR_FLAVORS,
+    flavorImages: KETOBAR_IMAGES,
     deliveryNote: '🚚 التوصيل مجاني',
     freeShipping: true,
     image: offerKetoImg,
@@ -104,7 +127,7 @@ const bundles = [
 const onlyKeto = (items) => items.length > 0 && items.every((item) => item.bundle.freeShipping)
 
 /** عدد القطع الافتراضي لكل عرض — يُستخدم في توزيع النكهات */
-const bundleUnits = (bundleId) => bundles.find((b) => b.id === bundleId)?.units ?? 5
+const bundleUnits = (bundle) => Math.max(1, Number(bundle.units) || 1)
 
 /** إيموجي لكل نكهة — للعرض في الـ picker وشرايح الهيرو */
 const FLAVOR_EMOJI = {
@@ -123,26 +146,7 @@ const FLAVOR_EMOJI = {
 }
 
 /** صورة كل نكهة للـ picker — منفصلين عشان "بندق" موجودة في النوعين بصورتين مختلفتين */
-const ICECREAM_IMAGES = {
-  'فانيليا': iceVanilla,
-  'شوكولاتة': iceChocolate,
-  'فراولة': iceStrawberry,
-  'مانجو': iceMango,
-  'بلوبيري': iceBlueberry,
-  'فسدق': icePistachio,
-  'بندق': iceHazelnut,
-  'كنتالوب': iceCantaloupe,
-}
 
-const KETOBAR_IMAGES = {
-  'بندق': ketoHazelnut,
-  'زبدة فول سوداني': ketoPeanut,
-  'دبل شوكولاتة': heroKetobarImg,
-  'جوز هند': ketoCoconut,
-  'لوز': ketoAlmond,
-}
-
-const bundleImages = (bundleId) => (bundleId === 'ketobar' ? KETOBAR_IMAGES : ICECREAM_IMAGES)
 
 /** ملخص نصي: "2 فانيليا + 1 مانجو" — يتجاهل النكهات الصفرية */
 const formatFlavorSummary = (names, values) =>
@@ -165,7 +169,7 @@ const flushPendingOrder = () => {
 }
 
 /** مسودة الفورم في sessionStorage — عشان الرجوع من التأكيد يرجع ببياناته */
-const draftSig = (list) => JSON.stringify((list || []).map((i) => ({ id: i.bundle.id, qty: i.qty })))
+const draftSig = (list) => JSON.stringify((list || []).map((i) => ({ id: i.bundle.id, qty: i.qty, units: i.bundle.units, flavors: i.bundle.flavorOptions?.map(({ id, name, group }) => ({ id, name, group })) || i.bundle.flavors })))
 
 const loadFormDraft = (list) => {
   try {
@@ -403,10 +407,11 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
     // النكهات لازم تكمل عدد قطع كل عرض — اللي ميلمسش العدادات معفي (متوزعة مشكّل من الأول)
     const incompleteIdx = cartItems.findIndex((item, i) => {
+      if (item.bundle.flavorsAvailable === false) return true
       if (item.bundle.flavors.length === 0) return false
-      const need = bundleUnits(item.bundle.id) * item.qty
+      const need = bundleUnits(item.bundle) * item.qty
       const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
-      return got < need
+      return got !== need
     })
     if (incompleteIdx !== -1) {
       setFlavorErrorIdx(incompleteIdx)
@@ -615,7 +620,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
           <div className="confirm-summary">
             <button className="remove-item-btn" onClick={() => removeItem(i)} title="إزالة من السلة">✕</button>
             <div className="confirm-img">
-              <img src={item.bundle.image} alt={`صورة ${item.bundle.name} في الطلب`} />
+              <img src={item.bundle.image || logo} style={item.bundle.image ? undefined : { objectFit: 'contain', backgroundColor: '#fff' }} alt={`صورة ${item.bundle.name} في الطلب`} />
             </div>
             <div className="confirm-info">
               <h3>{item.bundle.name} · {item.bundle.unitsLabel}{item.qty > 1 ? ` × ${item.qty}` : ''}</h3>
@@ -630,18 +635,19 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               )}
             </div>
           </div>
+          {item.bundle.flavorsAvailable === false && <p role="alert">النكهات غير متاحة حاليًا — احذف العرض أو ارجع لاختيار عرض تاني.</p>}
           {item.bundle.flavors.length > 0 && <FlavorPicker
             flavorNames={item.bundle.flavors}
             values={itemFlavors[i]}
-            total={bundleUnits(item.bundle.id) * item.qty}
-            images={bundleImages(item.bundle.id)}
+            total={bundleUnits(item.bundle) * item.qty}
+            images={item.bundle.flavorImages}
             onChange={(v) => {
               setItemFlavors(prev => prev.map((x, idx) => idx === i ? v : x))
               if (flavorErrorIdx === i) setFlavorErrorIdx(null)
             }}
           />}
           {flavorErrorIdx === i && (() => {
-            const need = bundleUnits(item.bundle.id) * item.qty
+            const need = bundleUnits(item.bundle) * item.qty
             const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
             const rem = need - got
             return (
@@ -714,21 +720,22 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
 // ─── LANDING (SCROLL PAGE) ───────────────────────────────────────────────────
 
-function Landing({ onConfirm }) {
+function Landing({ bundles, offersReady, onConfirm }) {
   const [openFaq, setOpenFaq] = useState(null)
   const [cart, setCart] = useState({})
   // Prevents AddToCart from firing twice if both checkout buttons are tapped
   // rapidly, or if onConfirm is called before the flow state transitions.
   const checkoutLock = useRef(false)
 
-  const cartCount = Object.values(cart).reduce((s, q) => s + q, 0)
+  const cartCount = bundles.reduce((s, b) => s + (b.flavorsAvailable === false ? 0 : cart[b.id] || 0), 0)
   const cartItems = bundles
-    .filter(b => (cart[b.id] || 0) > 0)
+    .filter(b => b.flavorsAvailable !== false && (cart[b.id] || 0) > 0)
     .map(b => ({ bundle: b, qty: cart[b.id] }))
   const cartCheckoutTotal = calcOrderTotal(cartItems)
 
-  const addToCart = (bundleId) => setCart(c => ({ ...c, [bundleId]: (c[bundleId] || 0) + 1 }))
+  const addToCart = (bundleId) => bundles.some(b => b.id === bundleId && b.flavorsAvailable !== false) && setCart(c => ({ ...c, [bundleId]: (c[bundleId] || 0) + 1 }))
   const setQty = (bundleId, val) => {
+    if (!bundles.some(b => b.id === bundleId && b.flavorsAvailable !== false)) return
     if (val <= 0) {
       setCart(c => { const n = { ...c }; delete n[bundleId]; return n })
     } else {
@@ -737,9 +744,10 @@ function Landing({ onConfirm }) {
   }
 
   const handleCheckout = () => {
+    if (!offersReady) return
     if (checkoutLock.current) return
     const items = bundles
-      .filter(b => (cart[b.id] || 0) > 0)
+      .filter(b => b.flavorsAvailable !== false && (cart[b.id] || 0) > 0)
       .map(b => ({ bundle: b, qty: cart[b.id] }))
     if (items.length === 0) return
     checkoutLock.current = true
@@ -783,13 +791,13 @@ function Landing({ onConfirm }) {
       {cartCount > 0 && (
         <div className="sticky-cart-bar">
           <div className="sticky-cart-items">
-            {bundles.filter(b => (cart[b.id] || 0) > 0).map(b => (
+            {bundles.filter(b => b.flavorsAvailable !== false && (cart[b.id] || 0) > 0).map(b => (
               <span key={b.id} className="sticky-cart-chip" style={{ '--accent': b.accent }}>
                 {b.name} ×{cart[b.id]}
               </span>
             ))}
           </div>
-          <button className="sticky-cart-btn" onClick={handleCheckout}>
+          <button className="sticky-cart-btn" disabled={!offersReady} onClick={handleCheckout}>
             أكمل الطلب — {cartCheckoutTotal} ج.م {onlyKeto(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
           </button>
         </div>
@@ -887,9 +895,10 @@ function Landing({ onConfirm }) {
           <DeliveryHighlight compact />
         </div>
         <CountdownTimer variant="offers" />
+        {!offersReady && <p role="status">جاري تحديث العروض…</p>}
         <div className="bundle-list">
           {bundles.map((bundle) => {
-            const qty = cart[bundle.id] || 0
+            const qty = bundle.flavorsAvailable === false ? 0 : cart[bundle.id] || 0
             const inCart = qty > 0
             const selectBundle = () => {
               if (!inCart) addToCart(bundle.id)
@@ -902,6 +911,7 @@ function Landing({ onConfirm }) {
                 tabIndex={0}
                 aria-pressed={inCart}
                 aria-label={`${bundle.name}${inCart ? ' — مختار في السلة' : ' — اضغط لاختيار العرض'}`}
+                aria-disabled={bundle.flavorsAvailable === false}
                 className={`bundle-row bundle-row-${bundle.id} ${inCart ? 'selected' : ''}`}
                 style={{ '--accent': bundle.accent }}
                 onClick={selectBundle}
@@ -915,12 +925,12 @@ function Landing({ onConfirm }) {
                 {inCart && <div className="selected-check">✓</div>}
                 {bundle.badge && <div className="bundle-row-badge">{bundle.badge}</div>}
                 <div className="bundle-row-img">
-                  <img src={bundle.image} width="1254" height="1254" alt={`صورة ${bundle.name} — Healthy & Tasty`} loading="lazy" />
+                  <img src={bundle.image || logo} style={bundle.image ? undefined : { objectFit: 'contain', backgroundColor: '#fff' }} width="1254" height="1254" alt={`صورة ${bundle.name} — Healthy & Tasty`} loading="lazy" />
                 </div>
                 <div className="bundle-row-info">
                   <h3>{bundle.name}</h3>
                   <p>{bundle.description}</p>
-                  <p className="bundle-row-note">{bundle.note}</p>
+                  <p className="bundle-row-note">{bundle.flavorsAvailable === false ? 'النكهات غير متاحة حاليًا' : bundle.note}</p>
                   {bundle.deliveryNote && (
                     <p className={`delivery-tag ${bundle.freeShipping ? 'delivery-tag--free' : 'delivery-tag--paid'}`}>
                       {bundle.deliveryNote}
@@ -939,7 +949,7 @@ function Landing({ onConfirm }) {
                         <button type="button" className="qty-btn" aria-label="زيادة الكمية" onClick={() => setQty(bundle.id, qty + 1)}>+</button>
                       </div>
                     ) : (
-                      <button type="button" className="add-to-cart-btn" onClick={() => addToCart(bundle.id)}>
+                      <button disabled={bundle.flavorsAvailable === false} type="button" className="add-to-cart-btn" onClick={() => addToCart(bundle.id)}>
                         🛒 أضف للسلة
                       </button>
                     )}
@@ -951,7 +961,7 @@ function Landing({ onConfirm }) {
         </div>
         <OfferTrustPills />
         {cartCount > 0 && (
-          <button type="button" className="next-btn landing-next-btn" onClick={handleCheckout}>
+          <button type="button" className="next-btn landing-next-btn" disabled={!offersReady} onClick={handleCheckout}>
             أكمل الطلب ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{onlyKeto(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
           </button>
         )}
@@ -1035,7 +1045,10 @@ function Landing({ onConfirm }) {
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 
 function App() {
-  const [flow, setFlow] = useState('landing')
+  const { bundles, ready } = useOffers('ice-cream', LOCAL_BUNDLES)
+  const [flow, setFlow] = useState(() =>
+    ['/add_to_cart', '/confirmation_order'].includes(window.location.pathname) ? 'restoring' : 'landing',
+  )
   const [cartItems, setCartItems] = useState([])
   // Prevents AddToCart pixel from firing more than once per page session
   const addToCartSentRef = useRef(false)
@@ -1067,6 +1080,7 @@ function App() {
 
   // Refresh على رابط خطوة يرجّع السلة + الرجوع/التقدم يمشي مع الخطوات والعنوان
   useEffect(() => {
+    if (!ready || flow !== 'restoring') return
     const restoreCart = () => {
       try {
         const saved = JSON.parse(sessionStorage.getItem('hc_cart'))
@@ -1094,10 +1108,15 @@ function App() {
           window.history.replaceState({}, '', '/add_to_cart')
         }
       } else {
+        setFlow('landing')
         window.history.replaceState({}, '', '/')
       }
+    } else {
+      setFlow('landing')
     }
+  }, [bundles, ready, flow])
 
+  useEffect(() => {
     const onPop = () => {
       const p = window.location.pathname
       if ((p === '/add_to_cart' || p === '/confirmation_order') && cartRef.current.length > 0) {
@@ -1134,9 +1153,15 @@ function App() {
     )
   }, [])
 
+  if (flow === 'restoring') {
+    return <main className="funnel" dir="rtl"><p role="status">جاري استرجاع سلتك…</p></main>
+  }
+
   if (flow === 'landing') {
     return (
       <Landing
+        bundles={bundles}
+        offersReady={ready}
         onConfirm={(items) => {
           setCartItems(items)
           persistCart(items)
