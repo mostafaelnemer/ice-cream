@@ -1,4 +1,5 @@
-﻿import { useState, useRef, useEffect } from 'react'
+﻿import { usePageContent } from './PageContent.jsx'
+import { useState, useRef, useEffect } from 'react'
 import { buildPurchaseMeta, getAddToCartEventId, getViewContentEventId, trackBrowserEventOnce } from './metaTracking'
 import CountdownTimer from './components/CountdownTimer'
 import { CheckCircle2, Phone, Mail } from 'lucide-react'
@@ -721,6 +722,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 // ─── LANDING (SCROLL PAGE) ───────────────────────────────────────────────────
 
 function Landing({ bundles, offersReady, onConfirm }) {
+  const content = usePageContent()
   const [openFaq, setOpenFaq] = useState(null)
   const [cart, setCart] = useState({})
   // Prevents AddToCart from firing twice if both checkout buttons are tapped
@@ -798,17 +800,17 @@ function Landing({ bundles, offersReady, onConfirm }) {
             ))}
           </div>
           <button className="sticky-cart-btn" disabled={!offersReady} onClick={handleCheckout}>
-            أكمل الطلب — {cartCheckoutTotal} ج.م {onlyKeto(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
+            {content.checkoutCta} — {cartCheckoutTotal} ج.م {onlyKeto(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
           </button>
         </div>
       )}
 
       <div className="promo-bar">
-        <span>💳 الدفع عند الاستلام</span>
+        <span>{content.promo1}</span>
         <span className="promo-dot">•</span>
-        <span>⚡ التوصيل خلال ساعات من تأكيد الطلب</span>
+        <span>{content.promo2}</span>
         <span className="promo-dot">•</span>
-        <span>بدون سكر 🤍</span>
+        <span>{content.promo3}</span>
         <span className="promo-dot">•</span>
         <CountdownTimer variant="bar" />
       </div>
@@ -816,13 +818,13 @@ function Landing({ bundles, offersReady, onConfirm }) {
       <header className="topbar">
         <img src={logo} alt="Healthy & Tasty" className="topbar-logo" />
         <nav className="topbar-nav" aria-label="أقسام الصفحة">
-          <a href="#offers">العروض</a>
-          <a href="#benefits-section">ليه Healthy &amp; Tasty</a>
-          <a href="#faq">الأسئلة الشائعة</a>
+          <a href="#offers">{content.navOffers}</a>
+          <a href="#benefits-section">{content.navBenefits}</a>
+          <a href="#faq">{content.navFaq}</a>
         </nav>
         <div className="topbar-actions">
           <button type="button" className="topbar-cta" onClick={scrollToBundles}>
-            اطلب الآن 🛒
+            {content.headerCta}
           </button>
         </div>
       </header>
@@ -962,7 +964,7 @@ function Landing({ bundles, offersReady, onConfirm }) {
         <OfferTrustPills />
         {cartCount > 0 && (
           <button type="button" className="next-btn landing-next-btn" disabled={!offersReady} onClick={handleCheckout}>
-            أكمل الطلب ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{onlyKeto(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
+            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{onlyKeto(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
           </button>
         )}
       </section>
@@ -1034,8 +1036,8 @@ function Landing({ bundles, offersReady, onConfirm }) {
       <footer className="footer">
         <img src={logo} alt="شعار Healthy and Tasty" className="footer-logo" />
         <div className="footer-links">
-          <a href="tel:+201100863802"><Phone size={16} /> اتصال</a>
-          <a href="mailto:care@healthyandtasty.store"><Mail size={16} /> إيميل</a>
+          <a href={`tel:${content.phone}`}><Phone size={16} /> {content.phoneLabel}</a>
+          <a href={`mailto:${content.email}`}><Mail size={16} /> {content.emailLabel}</a>
         </div>
       </footer>
     </div>

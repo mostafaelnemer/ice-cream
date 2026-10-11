@@ -1,3 +1,4 @@
+import { usePageContent } from '../PageContent.jsx';
 import { memo, useEffect, useState } from 'react';
 
 function getNextMidnight(from) {
@@ -31,6 +32,7 @@ function subscribeNow(fn) {
 const pad2 = (n) => n.toString().padStart(2, '0');
 
 export default memo(function CountdownTimer({ variant = 'offers' }) {
+  const content = usePageContent();
   const [now, setNow] = useState(sharedNow);
   const [offersVisible, setOffersVisible] = useState(false);
 
@@ -61,10 +63,10 @@ export default memo(function CountdownTimer({ variant = 'offers' }) {
     return (
       <div className="floating-timer" role="timer" aria-live="polite">
         <span className="floating-timer-info">
-          <span className="floating-timer-label">⏰ العرض ينتهي خلال</span>
+          <span className="floating-timer-label">{content.floatingTimerLabel}</span>
           <span className="floating-timer-time">{time}</span>
         </span>
-        <a className="floating-timer-cta" href="#offers">اطلب دلوقتي</a>
+        <a className="floating-timer-cta" href="#offers">{content.floatingCta}</a>
       </div>
     );
   }
@@ -72,7 +74,7 @@ export default memo(function CountdownTimer({ variant = 'offers' }) {
   if (variant === 'bar') {
     return (
       <span className="countdown-bar" role="timer" aria-live="polite">
-        <span className="countdown-bar-label">⏰ العروض تنتهي خلال</span>
+        <span className="countdown-bar-label">{content.timerLabel}</span>
         <span className="countdown-bar-time">{time}</span>
       </span>
     );
@@ -80,7 +82,7 @@ export default memo(function CountdownTimer({ variant = 'offers' }) {
 
   return (
     <div className="countdown" role="timer" aria-live="polite">
-      <span className="countdown-title">⏰ العروض تنتهي خلال</span>
+      <span className="countdown-title">{content.timerLabel}</span>
       <span className="countdown-time">{time}</span>
     </div>
   );
