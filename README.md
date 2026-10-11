@@ -138,3 +138,16 @@ npm run build
 - تأكد أن Google Apps Script منشور ومتاح لأي شخص.
 - لا تضع Meta access token داخل كود React أو أي ملف يتم رفعه للمتصفح.
 - بعد أي تعديل على Google Apps Script، اعمل Deploy new version.
+
+## Offers dashboard integration
+
+- Offers are read from the shared Supabase `offers` table with `site = ice-cream` and `is_active = true`, ordered by `sort_order`.
+- Local development uses ignored `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. The engineer must add the same public configuration to the hosting build environment before the final deployment. Rebuild after environment changes.
+- Existing slugs are `icecream`, `ketobar`, and `halawa`; local offer and flavor images are retained unless dashboard images are supplied. New offers without an image use the brand logo.
+- Prices, units, flavors and visibility refresh on page reload. Reloading checkout waits for the offer request and restores only available offers. Flavor drafts reset when units or flavor names/order change.
+- Cached raw rows or local offers are used if the request fails. A successful empty response shows no offers.
+- Shipping amounts are not charged by this page; the call center handles shipping. Hero text, FAQ text and promotional badges/descriptions require editorial updates when prices or offers change.
+- Order sending and Meta tracking retain their existing behavior. The confirmation screen appears before the background send finishes; verify real receipt in the order sheet after deployment. Automated local checks intercept all orders and tracking.
+
+### Managed flavors
+Names, images, order and visibility are managed per offer in the dashboard. `src/flavorCatalog.js` defines the shared JSON contract and legacy defaults. Hidden flavors are excluded from selection and order summaries; a required product group with no visible flavors makes its offer unavailable. Changes take effect on reload; offline fallback uses the last cached catalog. Hero/FAQ/description copy remains manually maintained. No SQL migration is required.
