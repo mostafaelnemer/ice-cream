@@ -1,4 +1,4 @@
-﻿import { shippingFee, shippingLabel, shippingSummary, cartShipping, cartShippingLabel } from './shipping.js'
+﻿import { shippingFee, shippingLabel, shippingSummary, cartShipping, cartShippingLabel, shippingOrderNote } from './shipping.js'
 import { usePageContent } from './PageContent.jsx'
 import { useState, useRef, useEffect } from 'react'
 import { buildPurchaseMeta, getAddToCartEventId, getViewContentEventId, trackBrowserEventOnce } from './metaTracking'
@@ -480,7 +480,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         phone,
         gov,
         address,
-        notes: notes || '',
+        notes: shippingOrderNote(notes, cartItems, 'ice-cream'),
         bundle: offerSummary,
         // الشيت: الإجمالي فقط — اتفاق 01/10/2026: شيلنا المنتجات/القيمة/الشحن/الوزن من الشيت
         price: `${totalPrice} ج.م`,
@@ -576,14 +576,14 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               <span className="success-label">المنتجات</span>
               <span className="success-val">{subtotal} ج.م</span>
             </div>
-            {(hasFreeShipping(cartItems) || cartShipping(cartItems, 'ice-cream').fee > 0) && (
+            {(
               <div className="success-card-row">
                 <span className="success-label">الشحن</span>
                 <span className="success-val">{cartShippingLabel(cartItems, 'ice-cream')}</span>
               </div>
             )}
             <div className="success-card-row">
-              <span className="success-label">الإجمالي</span>
+              <span className="success-label">{cartShipping(cartItems, 'ice-cream').deferred ? 'الإجمالي المبدئي' : 'الإجمالي'}</span>
               <span className="success-val price">{totalPrice} ج.م</span>
             </div>
             <div className="success-card-divider" />
@@ -632,7 +632,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                   <s>{item.bundle.originalPrice * item.qty} ج.م</s>
                 )}
               </div>
-              {shippingFee(item.bundle, 'ice-cream') !== null && (
+              {(
                 <span className="confirm-shipping">{shippingLabel(item.bundle, 'ice-cream')}</span>
               )}
             </div>
@@ -663,7 +663,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
       <div className="order-total-slim"><span>الشحن</span><span>{cartShippingLabel(cartItems, 'ice-cream')}</span></div>
       <div className="order-total-slim">
-        <span>الإجمالي{hasFreeShipping(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
+        <span>{cartShipping(cartItems, 'ice-cream').deferred ? 'الإجمالي المبدئي' : 'الإجمالي'}{hasFreeShipping(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
         <strong>{totalPrice} ج.م</strong>
       </div>
       <div className="form-section">
@@ -802,7 +802,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
             ))}
           </div>
           <button className="sticky-cart-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} — {cartCheckoutTotal} ج.م {hasFreeShipping(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
+            {content.checkoutCta} — {cartCheckoutTotal} ج.م {cartShipping(cartItems, 'ice-cream').deferred ? '· إجمالي مبدئي، الشحن مع الكول سنتر' : hasFreeShipping(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
           </button>
         </div>
       )}
@@ -936,7 +936,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                   <h3>{bundle.name}</h3>
                   <p>{bundle.description}</p>
                   <p className="bundle-row-note">{bundle.flavorsAvailable === false ? 'النكهات غير متاحة حاليًا' : bundle.note}</p>
-                  {shippingFee(bundle, 'ice-cream') !== null && (
+                  {(
                     <p className={`delivery-tag ${bundle.freeShipping ? 'delivery-tag--free' : 'delivery-tag--paid'}`}>
                       {shippingLabel(bundle, 'ice-cream')}
                     </p>
@@ -967,7 +967,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
         <OfferTrustPills />
         {cartCount > 0 && (
           <button type="button" className="next-btn landing-next-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{hasFreeShipping(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
+            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{cartShipping(cartItems, 'ice-cream').deferred ? ' · إجمالي مبدئي، الشحن مع الكول سنتر' : hasFreeShipping(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
           </button>
         )}
       </section>
