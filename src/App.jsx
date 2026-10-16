@@ -1,4 +1,5 @@
-﻿import { usePageContent } from './PageContent.jsx'
+﻿import { shippingFee, shippingLabel, shippingSummary, cartShipping, cartShippingLabel } from './shipping.js'
+import { usePageContent } from './PageContent.jsx'
 import { useState, useRef, useEffect } from 'react'
 import { buildPurchaseMeta, getAddToCartEventId, getViewContentEventId, trackBrowserEventOnce } from './metaTracking'
 import CountdownTimer from './components/CountdownTimer'
@@ -28,7 +29,7 @@ import './App.css'
 // - آيس كريم: 5 قطع بـ 299 جنيه (بدل 375)
 // - كيتو بار: 4 قطع بـ 250 جنيه (بدل 340)
 // - حلاوة طحينية سبريد: عبوة بـ 145 جنيه (بدل 190)
-// - مفيش شحن في الموقع — الكول سنتر هيتعامل
+// - رسوم الشحن من الداشبورد؛ القيم غير المحددة يؤكدها الكول سنتر
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -46,15 +47,15 @@ const offerTrustBadges = [
   { icon: '📞', label: 'تأكيد الطلب سريع' },
 ]
 
-// بدون شحن في الموقع خالص — الكول سنتر هيتعامل
+// Existing offers without a configured fee retain call-centre confirmation.
 const calcItemsSubtotal = (items) =>
   items.reduce((sum, item) => sum + item.bundle.price * item.qty, 0)
 
-/** total = مجموع المنتجات فقط */
-const calcOrderTotal = (items) => calcItemsSubtotal(items)
+/** Products plus the highest configured shipping fee, once per order. */
+const calcOrderTotal = (items) => calcItemsSubtotal(items) + cartShipping(items, 'ice-cream').fee
 
 // الأسعار من صور العروض المرسلة
-// ملحوظة: مفيش شحن في الموقع — الكول سنتر هيتعامل
+// Null shipping fees preserve the original confirmation flow.
 /** صور النكهات المحلية لكل نوع منتج */
 const ICECREAM_IMAGES = {
   'فانيليا': iceVanilla,
@@ -124,8 +125,8 @@ const LOCAL_BUNDLES = [
   },
 ]
 
-/** الكيتو لوحده = شحنه مجاني. الآيس كريم ملوش أي كلام عن الشحن. */
-const onlyKeto = (items) => items.length > 0 && items.every((item) => item.bundle.freeShipping)
+/** Free only when every selected offer has confirmed zero shipping. */
+const hasFreeShipping = (items) => items.length > 0 && items.every((item) => shippingFee(item.bundle, 'ice-cream') === 0)
 
 /** عدد القطع الافتراضي لكل عرض — يُستخدم في توزيع النكهات */
 const bundleUnits = (bundle) => Math.max(1, Number(bundle.units) || 1)
@@ -212,7 +213,7 @@ const egyptGovs = ['القاهرة', 'الجيزة', 'الإسكندرية', 'ط
 const faqs = [
   { q: 'الآيس كريم فيه سكر؟', a: 'لا، آيس كريم Healthy & Tasty بدون سكر، ومناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.' },
   { q: 'الكيتو بار مناسب للكيتو؟', a: 'أيوه، الـ Keto Bar مصمم ليناسب نظام الكيتو، وعملي كسناك بين الوجبات تاخده معاك في الشغل أو الجامعة أو الجيم.' },
-  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375. عرض الكيتو بار: 4 قطع بـ 250 جنيه بدلاً من 340 والتوصيل مجاني. عرض الحلاوة الطحينية سبريد: عبوة بـ 145 جنيه بدلاً من 190.' },
+  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375. عرض الكيتو بار: 4 قطع بـ 250 جنيه بدلاً من 340 حسب الشحن الموضح للعرض. عرض الحلاوة الطحينية سبريد: عبوة بـ 145 جنيه بدلاً من 190.' },
   { q: 'التوصيل بياخد قد إيه؟', a: 'فريق Healthy & Tasty بيتواصل سريعاً لتأكيد الطلب، والتوصيل يبدأ خلال ساعات بعد التأكيد.' },
   { q: 'الدفع إزاي؟', a: 'الدفع عند الاستلام.' },
   { q: 'أطلب إزاي؟', a: 'اختار العرض، أكمل بياناتك، وفريقنا هيتواصل معاك لتأكيد الطلب والتوصيل.' },
@@ -575,10 +576,10 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               <span className="success-label">المنتجات</span>
               <span className="success-val">{subtotal} ج.م</span>
             </div>
-            {onlyKeto(cartItems) && (
+            {(hasFreeShipping(cartItems) || cartShipping(cartItems, 'ice-cream').fee > 0) && (
               <div className="success-card-row">
                 <span className="success-label">الشحن</span>
-                <span className="success-val">مجاني 🚚</span>
+                <span className="success-val">{cartShippingLabel(cartItems, 'ice-cream')}</span>
               </div>
             )}
             <div className="success-card-row">
@@ -631,8 +632,8 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                   <s>{item.bundle.originalPrice * item.qty} ج.م</s>
                 )}
               </div>
-              {item.bundle.deliveryNote && (
-                <span className="confirm-shipping">{item.bundle.deliveryNote}</span>
+              {shippingFee(item.bundle, 'ice-cream') !== null && (
+                <span className="confirm-shipping">{shippingLabel(item.bundle, 'ice-cream')}</span>
               )}
             </div>
           </div>
@@ -660,8 +661,9 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         </div>
       ))}
 
+      <div className="order-total-slim"><span>الشحن</span><span>{cartShippingLabel(cartItems, 'ice-cream')}</span></div>
       <div className="order-total-slim">
-        <span>الإجمالي{onlyKeto(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
+        <span>الإجمالي{hasFreeShipping(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
         <strong>{totalPrice} ج.م</strong>
       </div>
       <div className="form-section">
@@ -800,7 +802,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
             ))}
           </div>
           <button className="sticky-cart-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} — {cartCheckoutTotal} ج.م {onlyKeto(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
+            {content.checkoutCta} — {cartCheckoutTotal} ج.م {hasFreeShipping(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
           </button>
         </div>
       )}
@@ -893,7 +895,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
         <div className="section-head light">
           <p className="eyebrow-pill light">{bundles.length} عروض 👇 اختار اللي يناسبك</p>
           <h2>الباقة المناسبة ليك</h2>
-          <p>الدفع عند الاستلام 💳 · 🍫 الكيتو بار توصيله مجاني</p>
+          <p>الدفع عند الاستلام 💳 · {shippingSummary(bundles, 'ice-cream')}</p>
           <DeliveryHighlight compact />
         </div>
         <CountdownTimer variant="offers" />
@@ -914,6 +916,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                 aria-pressed={inCart}
                 aria-label={`${bundle.name}${inCart ? ' — مختار في السلة' : ' — اضغط لاختيار العرض'}`}
                 aria-disabled={bundle.flavorsAvailable === false}
+                data-offer-id={bundle.id}
                 className={`bundle-row bundle-row-${bundle.id} ${inCart ? 'selected' : ''}`}
                 style={{ '--accent': bundle.accent }}
                 onClick={selectBundle}
@@ -933,9 +936,9 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                   <h3>{bundle.name}</h3>
                   <p>{bundle.description}</p>
                   <p className="bundle-row-note">{bundle.flavorsAvailable === false ? 'النكهات غير متاحة حاليًا' : bundle.note}</p>
-                  {bundle.deliveryNote && (
+                  {shippingFee(bundle, 'ice-cream') !== null && (
                     <p className={`delivery-tag ${bundle.freeShipping ? 'delivery-tag--free' : 'delivery-tag--paid'}`}>
-                      {bundle.deliveryNote}
+                      {shippingLabel(bundle, 'ice-cream')}
                     </p>
                   )}
                   <div className="bundle-row-price">
@@ -964,7 +967,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
         <OfferTrustPills />
         {cartCount > 0 && (
           <button type="button" className="next-btn landing-next-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{onlyKeto(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
+            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{hasFreeShipping(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
           </button>
         )}
       </section>
@@ -1025,7 +1028,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                 <span>{item.q}</span>
                 <span className="faq-arrow" aria-hidden="true">{openFaq === i ? '▲' : '▼'}</span>
               </button>
-              {openFaq === i && <p className="faq-a">{item.a}</p>}
+              {openFaq === i && <p className="faq-a">{item.q === 'إيه العروض المتاحة؟' ? bundles.map(bundle => `${bundle.name}: ${bundle.price} جنيه · ${shippingLabel(bundle, 'ice-cream')}`).join(' — ') : item.a}</p>}
             </div>
           ))}
         </div>
@@ -1216,8 +1219,8 @@ function App() {
 export default App
 
 
-export function LandingPreview({ showCart }) {
+export function LandingPreview({ showCart, focusSlug }) {
   const { bundles, ready } = useOffers('ice-cream', LOCAL_BUNDLES)
-  const first = bundles.find(bundle => bundle.flavorsAvailable !== false)
+  const first = focusSlug ? bundles.find(bundle => bundle.id === focusSlug && bundle.flavorsAvailable !== false) : bundles.find(bundle => bundle.flavorsAvailable !== false)
   return <Landing key={first?.id || 'empty'} bundles={bundles} offersReady={ready} onConfirm={() => {}} initialCart={showCart && first ? { [first.id]: 1 } : {}} />
 }
