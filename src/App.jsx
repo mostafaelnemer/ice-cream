@@ -576,14 +576,14 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               <span className="success-label">المنتجات</span>
               <span className="success-val">{subtotal} ج.م</span>
             </div>
-            {(
+            {!cartShipping(cartItems, 'ice-cream').deferred && (
               <div className="success-card-row">
                 <span className="success-label">الشحن</span>
                 <span className="success-val">{cartShippingLabel(cartItems, 'ice-cream')}</span>
               </div>
             )}
             <div className="success-card-row">
-              <span className="success-label">{cartShipping(cartItems, 'ice-cream').deferred ? 'الإجمالي المبدئي' : 'الإجمالي'}</span>
+              <span className="success-label">الإجمالي</span>
               <span className="success-val price">{totalPrice} ج.م</span>
             </div>
             <div className="success-card-divider" />
@@ -632,7 +632,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                   <s>{item.bundle.originalPrice * item.qty} ج.م</s>
                 )}
               </div>
-              {(
+              {Boolean(shippingLabel(item.bundle, 'ice-cream')) && (
                 <span className="confirm-shipping">{shippingLabel(item.bundle, 'ice-cream')}</span>
               )}
             </div>
@@ -661,9 +661,11 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
         </div>
       ))}
 
-      <div className="order-total-slim"><span>الشحن</span><span>{cartShippingLabel(cartItems, 'ice-cream')}</span></div>
+      {!cartShipping(cartItems, 'ice-cream').deferred && (
+        <div className="order-total-slim"><span>الشحن</span><span>{cartShippingLabel(cartItems, 'ice-cream')}</span></div>
+      )}
       <div className="order-total-slim">
-        <span>{cartShipping(cartItems, 'ice-cream').deferred ? 'الإجمالي المبدئي' : 'الإجمالي'}{hasFreeShipping(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
+        <span>الإجمالي{hasFreeShipping(cartItems) ? ' · توصيل مجاني 🚚' : ''}</span>
         <strong>{totalPrice} ج.م</strong>
       </div>
       <div className="form-section">
@@ -802,7 +804,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
             ))}
           </div>
           <button className="sticky-cart-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} — {cartCheckoutTotal} ج.م {cartShipping(cartItems, 'ice-cream').deferred ? '· إجمالي مبدئي، الشحن مع الكول سنتر' : hasFreeShipping(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
+            {content.checkoutCta} — {cartCheckoutTotal} ج.م {hasFreeShipping(cartItems) ? '· توصيل مجاني 🚚' : ''} ←
           </button>
         </div>
       )}
@@ -936,7 +938,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                   <h3>{bundle.name}</h3>
                   <p>{bundle.description}</p>
                   <p className="bundle-row-note">{bundle.flavorsAvailable === false ? 'النكهات غير متاحة حاليًا' : bundle.note}</p>
-                  {(
+                  {Boolean(shippingLabel(bundle, 'ice-cream')) && (
                     <p className={`delivery-tag ${bundle.freeShipping ? 'delivery-tag--free' : 'delivery-tag--paid'}`}>
                       {shippingLabel(bundle, 'ice-cream')}
                     </p>
@@ -967,7 +969,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
         <OfferTrustPills />
         {cartCount > 0 && (
           <button type="button" className="next-btn landing-next-btn" disabled={!offersReady} onClick={handleCheckout}>
-            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{cartShipping(cartItems, 'ice-cream').deferred ? ' · إجمالي مبدئي، الشحن مع الكول سنتر' : hasFreeShipping(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
+            {content.checkoutCta} ({cartCount} {cartCount === 1 ? 'عرض' : 'عروض'} — {cartCheckoutTotal} ج.م{hasFreeShipping(cartItems) ? ' · التوصيل مجاني 🚚' : ''}) ←
           </button>
         )}
       </section>
@@ -1028,7 +1030,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
                 <span>{item.q}</span>
                 <span className="faq-arrow" aria-hidden="true">{openFaq === i ? '▲' : '▼'}</span>
               </button>
-              {openFaq === i && <p className="faq-a">{item.q === 'إيه العروض المتاحة؟' ? bundles.map(bundle => `${bundle.name}: ${bundle.price} جنيه · ${shippingLabel(bundle, 'ice-cream')}`).join(' — ') : item.a}</p>}
+              {openFaq === i && <p className="faq-a">{item.q === 'إيه العروض المتاحة؟' ? bundles.map(bundle => { const label = shippingLabel(bundle, 'ice-cream'); return `${bundle.name}: ${bundle.price} جنيه${label ? ` · ${label}` : ''}` }).join(' — ') : item.a}</p>}
             </div>
           ))}
         </div>
