@@ -23,6 +23,8 @@ import ketoCoconut from './assets/ketobar-coconut.webp'
 import ketoHazelnut from './assets/ketobar-hazelnut.webp'
 import ketoPeanut from './assets/ketobar-peanut-butter.webp'
 import { useOffers } from './useOffers'
+import BundleComponents from './components/BundleComponents.jsx'
+import { emptyBundleValues, normalizeBundleValues, bundleValuesComplete, describeBundleValues } from './components/bundleSelection.js'
 import './App.css'
 
 // العروض النهائية:
@@ -130,6 +132,7 @@ const hasFreeShipping = (items) => items.length > 0 && items.every((item) => shi
 
 /** عدد القطع الافتراضي لكل عرض — يُستخدم في توزيع النكهات */
 const bundleUnits = (bundle) => Math.max(1, Number(bundle.units) || 1)
+const needsComponents = (bundle) => Array.isArray(bundle?.components) && bundle.components.length > 0
 
 /** إيموجي لكل نكهة — للعرض في الـ picker وشرايح الهيرو */
 const FLAVOR_EMOJI = {
@@ -171,7 +174,7 @@ const flushPendingOrder = () => {
 }
 
 /** مسودة الفورم في sessionStorage — عشان الرجوع من التأكيد يرجع ببياناته */
-const draftSig = (list) => JSON.stringify((list || []).map((i) => ({ id: i.bundle.id, qty: i.qty, units: i.bundle.units, flavors: i.bundle.flavorOptions?.map(({ id, name, group }) => ({ id, name, group })) || i.bundle.flavors })))
+const draftSig = (list) => JSON.stringify((list || []).map((i) => ({ id: i.bundle.id, qty: i.qty, units: i.bundle.units, flavors: i.bundle.flavorOptions?.map(({ id, name, group }) => ({ id, name, group })) || i.bundle.flavors, components: i.bundle.components?.map(({ key, label, qty, choose, group }) => ({ key, label, qty, choose, group })) })))
 
 const loadFormDraft = (list) => {
   try {
@@ -341,20 +344,29 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
     // البيزنس طالب: تبدأ كلها صفر والعميل يوزع بنفسه
     return initialItems.map(item => item.bundle.flavors.map(() => 0))
   })
+  const [itemComponents, setItemComponents] = useState(() => {
+    if (savedDraft && Array.isArray(savedDraft.itemComponents) && savedDraft.itemComponents.length === initialItems.length) {
+      return initialItems.map((item, index) => needsComponents(item.bundle)
+        ? normalizeBundleValues(item.bundle.components, savedDraft.itemComponents[index])
+        : null)
+    }
+    return initialItems.map(item => needsComponents(item.bundle) ? emptyBundleValues(item.bundle.components) : null)
+  })
 
   // احفظ مسودة أول بأول — الرجوع من التأكيد أو الـ refresh يرجع ببياناته
   useEffect(() => {
     try {
       sessionStorage.setItem('hc_form_draft_v2', JSON.stringify({
         sig: draftSig(items),
-        itemFlavors, name, phone, gov, address, notes,
+        itemFlavors, itemComponents, name, phone, gov, address, notes,
       }))
     } catch { /* ignore */ }
-  }, [items, itemFlavors, name, phone, gov, address, notes])
+  }, [items, itemFlavors, itemComponents, name, phone, gov, address, notes])
 
   const removeItem = (i) => {
     setItems(prev => prev.filter((_, idx) => idx !== i))
     setItemFlavors(prev => prev.filter((_, idx) => idx !== i))
+    setItemComponents(prev => prev.filter((_, idx) => idx !== i))
   }
 
   if (items.length === 0) {
@@ -377,9 +389,11 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
 
   const buildOrderSummary = () =>
     cartItems.map((item, i) => {
-      const flavorDetails = item.bundle.flavors.length > 0
-        ? ` (${formatFlavorSummary(item.bundle.flavors, itemFlavors[i])})`
-        : ''
+      const flavorDetails = needsComponents(item.bundle)
+        ? ` (${describeBundleValues(item.bundle.components, itemComponents[i])})`
+        : item.bundle.flavors.length > 0
+          ? ` (${formatFlavorSummary(item.bundle.flavors, itemFlavors[i])})`
+          : ''
       const summary = `${item.bundle.name} ×${item.qty}${flavorDetails}`
       return summary
     }).join(' | ')
@@ -410,6 +424,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
     // النكهات لازم تكمل عدد قطع كل عرض — اللي ميلمسش العدادات معفي (متوزعة مشكّل من الأول)
     const incompleteIdx = cartItems.findIndex((item, i) => {
       if (item.bundle.flavorsAvailable === false) return true
+      if (needsComponents(item.bundle)) return !bundleValuesComplete(item.bundle.components, itemComponents[i])
       if (item.bundle.flavors.length === 0) return false
       const need = bundleUnits(item.bundle) * item.qty
       const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
@@ -563,9 +578,13 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                     <span className="success-label">{item.bundle.name}</span>
                     <span className="success-val">×{item.qty} — {item.bundle.price * item.qty} ج.م</span>
                   </div>
-                  {item.bundle.flavors.length > 0 && <div className="success-card-row">
+                  {(needsComponents(item.bundle) || item.bundle.flavors.length > 0) && <div className="success-card-row">
                     <span className="success-label">النكهات</span>
-                    <span className="success-val">{formatFlavorSummary(item.bundle.flavors, itemFlavors[i])}</span>
+                    <span className="success-val">
+                      {needsComponents(item.bundle)
+                        ? describeBundleValues(item.bundle.components, itemComponents[i])
+                        : formatFlavorSummary(item.bundle.flavors, itemFlavors[i])}
+                    </span>
                   </div>}
                   {i < cartItems.length - 1 && <div className="success-card-divider" />}
                 </div>
@@ -638,7 +657,16 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
             </div>
           </div>
           {item.bundle.flavorsAvailable === false && <p role="alert">النكهات غير متاحة حاليًا — احذف العرض أو ارجع لاختيار عرض تاني.</p>}
-          {item.bundle.flavors.length > 0 && <FlavorPicker
+          {needsComponents(item.bundle) ? (
+            <BundleComponents
+              components={item.bundle.components}
+              values={itemComponents[i] ?? {}}
+              onChange={(value) => {
+                setItemComponents(prev => prev.map((x, idx) => idx === i ? value : x))
+                if (flavorErrorIdx === i) setFlavorErrorIdx(null)
+              }}
+            />
+          ) : item.bundle.flavors.length > 0 && <FlavorPicker
             flavorNames={item.bundle.flavors}
             values={itemFlavors[i]}
             total={bundleUnits(item.bundle) * item.qty}
@@ -648,7 +676,11 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
               if (flavorErrorIdx === i) setFlavorErrorIdx(null)
             }}
           />}
-          {flavorErrorIdx === i && (() => {
+          {flavorErrorIdx === i && (needsComponents(item.bundle) ? (
+            <p className="field-msg error flavor-error" role="alert">
+              ⚠️ كمّل اختيار مكوّنات {item.bundle.name}
+            </p>
+          ) : (() => {
             const need = bundleUnits(item.bundle) * item.qty
             const got = (itemFlavors[i] || []).reduce((s, v) => s + v, 0)
             const rem = need - got
@@ -657,7 +689,7 @@ function StepConfirm({ cartItems: initialItems, onBack }) {
                 ⚠️ كمّل نكهات {item.bundle.name} — فاضل {rem} {rem === 1 ? 'قطعة' : 'قطع'}
               </p>
             )
-          })()}
+          })())}
         </div>
       ))}
 
