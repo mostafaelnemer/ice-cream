@@ -6,7 +6,8 @@ export const OffersPreviewContext = createContext(null)
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const CACHE_PREFIX = 'ht_offers_v3_'
+// v4: drops offers cached before the ice-cream page was limited to ice cream only.
+const CACHE_PREFIX = 'ht_offers_v4_'
 const TIMEOUT_MS = 6000
 
 let clientPromise
