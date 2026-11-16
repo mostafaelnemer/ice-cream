@@ -6,10 +6,7 @@ import CountdownTimer from './components/CountdownTimer'
 import { CheckCircle2, Phone, Mail } from 'lucide-react'
 import logo from './assets/logo.png'
 import heroIcecreamImg from './assets/icecream-vanilla.webp'
-import heroKetobarImg from './assets/hero-ketobar-double-chocolate.webp'
 import offerIcecreamImg from './assets/ice_cream.webp'
-import offerKetoImg from './assets/keto.webp'
-import offerHalawaImg from './assets/halawa-spread.jpeg'
 import iceVanilla from './assets/icecream-vanilla.webp'
 import iceChocolate from './assets/icecream-chocolate.webp'
 import iceStrawberry from './assets/icecream-strawberry.webp'
@@ -18,28 +15,20 @@ import iceBlueberry from './assets/icecream-blueberry.webp'
 import iceCantaloupe from './assets/icecream-cantaloupe.webp'
 import iceHazelnut from './assets/icecream-hazelnut.webp'
 import iceMango from './assets/icecream-mango.webp'
-import ketoAlmond from './assets/ketobar-almond.webp'
-import ketoCoconut from './assets/ketobar-coconut.webp'
-import ketoHazelnut from './assets/ketobar-hazelnut.webp'
-import ketoPeanut from './assets/ketobar-peanut-butter.webp'
 import { useOffers } from './useOffers'
 import BundleComponents from './components/BundleComponents.jsx'
 import { emptyBundleValues, normalizeBundleValues, bundleValuesComplete, describeBundleValues } from './components/bundleSelection.js'
 import './App.css'
 
-// العروض النهائية:
+// الصفحة دي للآيس كريم بس (الكيتو بار في صفحة الشيكولاتة، والحلاوة في صفحة الحلاوة).
+// العروض بتيجي من تابة «الآيس كريم» في الداشبورد؛ العرض المحلي تحت احتياطي لو Supabase مش متاح.
 // - آيس كريم: 5 قطع بـ 299 جنيه (بدل 375)
-// - كيتو بار: 4 قطع بـ 250 جنيه (بدل 340)
-// - حلاوة طحينية سبريد: عبوة بـ 145 جنيه (بدل 190)
 // - رسوم الشحن من الداشبورد؛ القيم غير المحددة يؤكدها الكول سنتر
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 /** نكهات الآيس كريم — من صور المنتجات (8 نكهات) */
 const ICECREAM_FLAVORS = ['فانيليا', 'شوكولاتة', 'فراولة', 'مانجو', 'بلوبيري', 'فسدق', 'بندق', 'كنتالوب']
-
-/** نكهات الكيتو بار — نهائية من المستخدم (29/09/2026) */
-const KETO_BAR_FLAVORS = ['بندق', 'زبدة فول سوداني', 'دبل شوكولاتة', 'جوز هند', 'لوز']
 
 const DELIVERY_HOURS_LABEL = 'التوصيل خلال ساعات من تأكيد الطلب'
 
@@ -70,14 +59,6 @@ const ICECREAM_IMAGES = {
   'كنتالوب': iceCantaloupe,
 }
 
-const KETOBAR_IMAGES = {
-  'بندق': ketoHazelnut,
-  'زبدة فول سوداني': ketoPeanut,
-  'دبل شوكولاتة': heroKetobarImg,
-  'جوز هند': ketoCoconut,
-  'لوز': ketoAlmond,
-}
-
 const LOCAL_BUNDLES = [
   {
     id: 'icecream',
@@ -93,37 +74,6 @@ const LOCAL_BUNDLES = [
     flavorImages: ICECREAM_IMAGES,
     image: offerIcecreamImg,
     accent: '#EC4899',
-  },
-  {
-    id: 'ketobar',
-    name: 'عرض الكيتو بار',
-    badge: '💪 4 قطع بـ 250 ج',
-    description: `كيتو بار Healthy & Tasty — سناك بروتين من غير سكر · 4 قطع من 5 نكهات: ${KETO_BAR_FLAVORS.join('، ')}`,
-    price: 250,
-    originalPrice: 340,
-    saving: 90,
-    units: 4,
-    unitsLabel: '4 قطع',
-    flavors: KETO_BAR_FLAVORS,
-    flavorImages: KETOBAR_IMAGES,
-    deliveryNote: '🚚 التوصيل مجاني',
-    freeShipping: true,
-    image: offerKetoImg,
-    accent: '#10B981',
-  },
-  {
-    id: 'halawa',
-    name: 'عرض الحلاوة الطحينية سبريد',
-    badge: '🥄 عبوة بـ 145 ج',
-    description: 'حلاوة طحينية سبريد من Healthy & Tasty — عبوة بـ 145 جنيه بدل 190 جنيه.',
-    price: 145,
-    originalPrice: 190,
-    saving: 45,
-    units: 1,
-    unitsLabel: 'عبوة واحدة',
-    flavors: [],
-    image: offerHalawaImg,
-    accent: '#F5B800',
   },
 ]
 
@@ -199,15 +149,15 @@ const heroMarqueeItems = [
   { img: iceVanilla, name: 'فانيليا' },
   { img: iceStrawberry, name: 'فراولة' },
   { img: icePistachio, name: 'فسدق' },
-  { img: heroKetobarImg, name: 'دبل شوكولاتة' },
-  { img: ketoPeanut, name: 'فول سوداني' },
-  { img: ketoCoconut, name: 'جوز هند' },
+  { img: iceMango, name: 'مانجو' },
+  { img: iceHazelnut, name: 'بندق' },
+  { img: iceBlueberry, name: 'بلوبيري' },
 ]
 
 const benefitCards = [
   { icon: '🍦', title: 'آيس كريم بطعم تحبه', text: 'استمتع بطعم الآيس كريم اللي بتحبه، مع خيار مناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.' },
   { icon: '💜', title: 'مناسب لنظامك', text: 'اختيارات تناسب يومك في الدايت — للحظات اللي نفسك فيها بحاجة مختلفة من غير ما تحس إن الدايت ممل.' },
-  { icon: '🍫', title: 'كيتو بار عملي', text: 'سناك سريع بين الوجبات من Healthy & Tasty — تاخده معاك في الشغل، الجامعة أو الجيم.' },
+  { icon: '🌈', title: '8 نكهات تختار منهم', text: 'فانيليا، شوكولاتة، فراولة، مانجو، بلوبيري، فسدق، بندق وكنتالوب — وزّع النكهات اللي بتحبها في عرضك.' },
   { icon: '🚚', title: 'طلب سهل', text: 'ادخل بياناتك — فريق Healthy & Tasty هيتواصل سريعاً للتأكيد، والدفع عند الاستلام.' },
 ]
 
@@ -215,8 +165,7 @@ const egyptGovs = ['القاهرة', 'الجيزة', 'الإسكندرية', 'ط
 
 const faqs = [
   { q: 'الآيس كريم فيه سكر؟', a: 'لا، آيس كريم Healthy & Tasty بدون سكر، ومناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.' },
-  { q: 'الكيتو بار مناسب للكيتو؟', a: 'أيوه، الـ Keto Bar مصمم ليناسب نظام الكيتو، وعملي كسناك بين الوجبات تاخده معاك في الشغل أو الجامعة أو الجيم.' },
-  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375. عرض الكيتو بار: 4 قطع بـ 250 جنيه بدلاً من 340 حسب الشحن الموضح للعرض. عرض الحلاوة الطحينية سبريد: عبوة بـ 145 جنيه بدلاً من 190.' },
+  { q: 'إيه العروض المتاحة؟', a: 'عرض الآيس كريم: 5 قطع بـ 299 جنيه بدلاً من 375.' },
   { q: 'التوصيل بياخد قد إيه؟', a: 'فريق Healthy & Tasty بيتواصل سريعاً لتأكيد الطلب، والتوصيل يبدأ خلال ساعات بعد التأكيد.' },
   { q: 'الدفع إزاي؟', a: 'الدفع عند الاستلام.' },
   { q: 'أطلب إزاي؟', a: 'اختار العرض، أكمل بياناتك، وفريقنا هيتواصل معاك لتأكيد الطلب والتوصيل.' },
@@ -873,7 +822,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
             <span> من غير ما تبوّظ الدايت؟</span>
           </h1>
           <p className="hero-sub">
-            آيس كريم بدون سكر بـ 8 نكهات، وكيتو بار مشبّع بـ 5 نكهات —
+            آيس كريم بدون سكر بـ 8 نكهات —
             اختار نكهاتك بنفسك، وادفع عند الاستلام.
           </p>
 
@@ -898,17 +847,17 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
           <div className="hero-stage">
             <img src={iceVanilla} alt="آيس كريم فانيليا بدون سكر" className="hero-main-img" fetchPriority="high" loading="eager" decoding="async" />
             <span className="hero-float-tag hero-float-tag--pink">🍨 8 نكهات آيس كريم</span>
-            <span className="hero-float-tag hero-float-tag--green">🍫 5 نكهات كيتو بار</span>
+            <span className="hero-float-tag hero-float-tag--green">💪 مناسب للكيتو</span>
             <span className="hero-float-tag hero-float-tag--white">بدون سكر ✓</span>
             <img src={iceStrawberry} alt="آيس كريم فراولة" className="hero-orbit hero-orbit--1" loading="lazy" />
             <img src={icePistachio} alt="آيس كريم فسدق" className="hero-orbit hero-orbit--2" loading="lazy" />
             <img src={iceChocolate} alt="آيس كريم شوكولاتة" className="hero-orbit hero-orbit--3" loading="lazy" />
-            <img src={heroKetobarImg} alt="كيتو بار دبل شوكولاتة" className="hero-orbit hero-orbit--4" loading="lazy" />
-            <img src={ketoPeanut} alt="كيتو بار زبدة فول سوداني" className="hero-orbit hero-orbit--5" loading="lazy" />
+            <img src={iceMango} alt="آيس كريم مانجو" className="hero-orbit hero-orbit--4" loading="lazy" />
+            <img src={iceHazelnut} alt="آيس كريم بندق" className="hero-orbit hero-orbit--5" loading="lazy" />
             <img src={iceBlueberry} alt="آيس كريم بلوبيري" className="hero-orbit hero-orbit--6" loading="lazy" />
           </div>
           <div className="hero-proof-chip">
-            <span>🍨 8 نكهات آيس كريم + 🍫 5 نكهات كيتو بار</span>
+            <span>🍨 8 نكهات آيس كريم بدون سكر</span>
             <small>اختار النكهات بنفسك عند الطلب</small>
           </div>
         </div>
@@ -1010,7 +959,7 @@ function Landing({ bundles, offersReady, onConfirm, initialCart = {} }) {
         <div className="section-head">
           <p className="eyebrow-pill">ليه Healthy & Tasty؟</p>
           <h2>اختيارات تناسب نظامك خلال اليوم</h2>
-          <p>آيس كريم · كيتو بار — بدون سكر، مناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.</p>
+          <p>آيس كريم بدون سكر — مناسب لمتبعي الكيتو والأنظمة منخفضة السعرات.</p>
         </div>
         <div className="benefit-grid">
           {benefitCards.map((b) => (
